@@ -1,0 +1,101 @@
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+import seaborn as sb
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from   sklearn import metrics
+from sklearn.metrics import plot_confusion_matrix
+import  matplotlib.pyplot as plt
+
+
+
+# Read and show first 5 rows of df 
+df = pd.read_csv("/content/drive/MyDrive/Datasets/Titanic.csv")
+print(df.head())
+
+# our target variable is survived 
+# create a new frame dropping the Passenger number would not have any real-world impact on survivability  
+frame = pd.DataFrame(df, columns=["Class", "Sex", "Age","Survived"])
+
+
+# Check for missing values  
+
+print(frame.isnull().any())
+
+#We get no missing values 
+
+# Plot Subplots of all factors 
+ax1 = sns.countplot(x= "Class", data=frame)
+plt.title("Distribution of Passengers by Class")
+plt.show()
+
+ax2 = sns.countplot(x= "Sex", data=frame)
+plt.title("Distribution of Passengers by Sex")
+
+plt.show()
+
+ax3 = sns.countplot(x= "Age", data=frame)
+plt.title("Distribution of Passengers by Age")
+
+plt.show()
+
+ax4 = sns.countplot(x = "Survived", data= frame)
+plt.title("Distribution of Passengers by Survival")
+plt.show()
+
+# Dummy Variables
+pd.set_option("max_columns", None)
+
+df2 = pd.get_dummies(frame,columns=["Class","Sex","Age"])
+print(df2)
+
+test = df2.drop(df2.columns[[4,6,8]],axis=1)
+
+print(test)
+
+#Split into testing and training datasets
+X = test.iloc[:,1:]
+y = test.iloc[:,0]
+
+
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.3,random_state = 2020)
+
+#fit training data to the model
+model = LogisticRegression()
+
+model.fit(X_train,y_train)
+
+#Predict outcomes for test set
+y_pred = model.predict(X_test)
+
+
+#display the accuracy 
+print(metrics.accuracy_score(y_test,y_pred))
+
+# Confusion Matrix 
+cnf_matrix = metrics.confusion_matrix(y_test,y_pred)
+print(cnf_matrix)
+
+metrics.plot_confusion_matrix(model,X_test,y_test)
+print(metrics.classification_report(y_test,y_pred))
+
+#Predict the value of a man in 3rd class
+
+dummy_data = [0,0,1,0,1]
+dummy_array = np.array(dummy_data)
+t = dummy_array.reshape(1,-1)
+dummy_outcome = model.predict(t)
+
+
+#the prediction would say that he would not have survived 
+print(dummy_outcome)
+
+
+# Predict the probability 
+
+print(model.predict_proba(t))
+
+#there is an 88.63% of Not Surviving compared to a 11.37% chance of survival for an adult male passenger in 3rd class
+
+
